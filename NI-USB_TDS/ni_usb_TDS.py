@@ -30,17 +30,18 @@ class NIUSB6501(Device):
     
     def init_device(self):
         self.info_stream('Trying to establish connection')
+        #initiation sets port to 1, line to 0 (closed) and makes port 1 writeable
+        # and ports 0,2 readable (not writeable)
         
         try:
             Device.init_device(self)
             self.dev = ni.get_adapter()
             self.set_state(DevState.ON)
-            #following three lines are initiation for port = 1. can be changed through change_port method
             self.dev.set_io_mode(0,127,0)#sets port0 and port2 to "read" i.e. "not writable.
             self.__port = 1
-            self.dev.write_port(self.__port,0)
-            #print(self.dev.read_port(1))
             self.__line = 0
+            self.dev.write_port(self.__port,0)
+
             self.info_stream('Connection established.')
             
         except:
