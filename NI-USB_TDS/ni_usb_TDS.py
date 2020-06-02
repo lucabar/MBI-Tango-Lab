@@ -98,7 +98,7 @@ class NIUSB6501(Device):
         self.__ports[port] = state
     
     @DebugIt()
-    @command()    
+    @command(dtype_in = float)    
     def gate_timer(self,port,duration):
         self.change_port(port,True)
         time.sleep(duration)
