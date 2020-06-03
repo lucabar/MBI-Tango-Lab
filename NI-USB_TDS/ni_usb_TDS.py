@@ -16,15 +16,15 @@ import ni_usb_6501 as ni
 class NIUSB6501(Device):
     
     
-    port3 = attribute(fget='read_port3',fset='write_port3',name='Port 3',access=AttrWriteType.READ_WRITE,dtype=bool)
+    port3 = attribute(fget='read_port3',fset='write_port3',name='Port3',access=AttrWriteType.READ_WRITE,dtype=bool)
     
-    port4 = attribute(fget='read_port4',fset='write_port4',name='Port 4',access=AttrWriteType.READ_WRITE,dtype=bool)
+    port4 = attribute(fget='read_port4',fset='write_port4',name='Port4',access=AttrWriteType.READ_WRITE,dtype=bool)
     
-    port5 = attribute(fget='read_port5',fset='write_port5',name='Port 5',access=AttrWriteType.READ_WRITE,dtype=bool)
+    port5 = attribute(fget='read_port5',fset='write_port5',name='Port5',access=AttrWriteType.READ_WRITE,dtype=bool)
     
-    port6 = attribute(fget='read_port6',fset='write_port6',name='Port 6',access=AttrWriteType.READ_WRITE,dtype=bool)
+    port6 = attribute(fget='read_port6',fset='write_port6',name='Port6',access=AttrWriteType.READ_WRITE,dtype=bool)
     
-    port7 = attribute(fget='read_port7',fset='write_port7',name='Port 7',access=AttrWriteType.READ_WRITE,dtype=bool)
+    port7 = attribute(fget='read_port7',fset='write_port7',name='Port7',access=AttrWriteType.READ_WRITE,dtype=bool)
     
     
     
@@ -98,7 +98,7 @@ class NIUSB6501(Device):
         self.__ports[port] = state
     
     @DebugIt()
-    @command(dtype_in = float)    
+    @command()    
     def gate_timer(self,port,duration):
         self.change_port(port,True)
         time.sleep(duration)
