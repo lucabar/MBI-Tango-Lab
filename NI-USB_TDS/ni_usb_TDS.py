@@ -7,7 +7,7 @@ Created on Wed May 27 14:17:29 2020
 
 
 """
-from tango import AttrWriteType, DevState, DebugIt
+from tango import AttrWriteType, DevState, DebugIt, DevVarLong64Array
 from tango.server import Device, attribute, command
 import time
 import ni_usb_6501 as ni
@@ -83,7 +83,7 @@ class NIUSB6501(Device):
     def write_port7(self,state):
         self.change_port(7,state)
 
-    @DebugIt(show_args=True,show_kwargs=True,show_ret=True)            
+    @DebugIt()            
     def change_port(self, port, state):
         
         new = -1-port
@@ -96,30 +96,39 @@ class NIUSB6501(Device):
         self.__active = ''.join(self.__active)
         self.dev.write_port(1,int(self.__active,2))
         self.__ports[port] = state
+        self.debug_stream('changed port'+str(port)+' to '+str(state))
     
     @DebugIt()
-    @command()    
-    def gate_timer(self,port,duration):
+    @command(dtype_in=DevVarLong64Array)    
+    def gate_timer(self,inp):
+        start = time.time()
+        port,duration = inp
         self.change_port(port,True)
         time.sleep(duration)
-        self.change(port,False)
+        self.change_port(port,False)
+        act_dur = time.time()-start
+        self.debug_stream('Actual duration of gate: '+ str(act_dur))
 
-'''
-	work in progress...
+    '''
+	#work in progress...
     @DebugIt()
-    @command()
-    def pulsetrain(self,port,freq,duration):
+    @command(dtype_in=DevVarLong64Array)
+    def pulsetrain(self,inp):
+        hits = 0
+        port, freq, duration = inp
         start = time.time()
-        for i in range(0,freq):
-            self.gate_timer(port,1/freq)
-            time.sleep(1/freq)
+        while time.time() <= start+duration:
+            hits += 1
+            self.change_port(port,True)
+            time.sleep(1/(2*freq))
+            self.change_port(port,False)
+            time.sleep(1/(2*freq))
         end = time.time()
-        self.info_stream('Pulse went on for {} seconds'.format(end-start))
-'''
+        self.debug_stream('Actual duration:'+str(end-start))
+        self.debug_stream('Actual frequency: '+str(hits/(end-start)))
+    '''
             
         
-        
-            
 if __name__ == "__main__":
     NIUSB6501.run_server()
             
