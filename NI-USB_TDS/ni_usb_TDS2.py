@@ -82,9 +82,10 @@ class NIUSB6501(Device):
     
     def write_port7(self,state):
         self.change_port(7,state)
-    
-    @DebugIt(show_args=True,show_ret=True)
-    def change_active(self,port,state):
+
+    @DebugIt()            
+    def change_port(self, port, state):
+        
         new = -1-port
         self.__active=list(self.__active)
         
@@ -93,12 +94,6 @@ class NIUSB6501(Device):
         if not state:
             self.__active[new] = '0'
         self.__active = ''.join(self.__active)
-        bitmap = self.__active
-        return bitmap
-    
-    @DebugIt()            
-    def change_port(self, port, state):
-        self.change_active(port,state)
         self.dev.write_port(1,int(self.__active,2))
         self.__ports[port] = state
         self.debug_stream('changed port'+str(port)+' to '+str(state))
@@ -121,22 +116,16 @@ class NIUSB6501(Device):
     def pulsetrain(self,inp):
         hits = 0
         port, freq, duration = inp
-        
-        bitmap_on = int(self.change_active(port,True),2)
-        bitmap_off = int(self.change_active(port,False),2)
-        self.debug_stream(str(bitmap_on))
-        self.debug_stream(str(bitmap_off))
-        
         start = time.time()
         while time.time() <= start+duration:
             hits += 1
-            self.dev.write_port(1,bitmap_on)
-            time.sleep(1/(freq))
-            self.dev.write_port(1,bitmap_off)
-            time.sleep(1/(freq))
-        act_dur = time.time()-start
-        self.debug_stream('Actual duration:'+str(act_dur))
-        self.debug_stream('Actual hits: '+str(hits))
+            self.change_port(port,True)
+            time.sleep(1/(2*freq))
+            self.change_port(port,False)
+            time.sleep(1/(2*freq))
+        end = time.time()
+        self.debug_stream('Actual duration:'+str(end-start))
+        self.debug_stream('Actual frequency: '+str(hits/(end-start)))
     
             
         
