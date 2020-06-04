@@ -6,8 +6,9 @@ Created on Wed May 27 14:17:29 2020
 @author: Luca Barbera
 
 
+
 """
-from tango import AttrWriteType, DevState, DebugIt, DevVarLong64Array
+from tango import AttrWriteType, DevState, DebugIt
 from tango.server import Device, attribute, command
 import time
 import ni_usb_6501 as ni
@@ -16,19 +17,21 @@ import ni_usb_6501 as ni
 class NIUSB6501(Device):
     
     
-    port3 = attribute(fget='read_port3',fset='write_port3',name='Port3',access=AttrWriteType.READ_WRITE,dtype=bool)
+    port3 = attribute(fget='read_port3',fset='write_port3',name='Port_1.3',access=AttrWriteType.READ_WRITE,dtype=bool)
     
-    port4 = attribute(fget='read_port4',fset='write_port4',name='Port4',access=AttrWriteType.READ_WRITE,dtype=bool)
+    port4 = attribute(fget='read_port4',fset='write_port4',name='Port_1.4',access=AttrWriteType.READ_WRITE,dtype=bool)
     
-    port5 = attribute(fget='read_port5',fset='write_port5',name='Port5',access=AttrWriteType.READ_WRITE,dtype=bool)
+    port5 = attribute(fget='read_port5',fset='write_port5',name='Port_1.5',access=AttrWriteType.READ_WRITE,dtype=bool)
     
-    port6 = attribute(fget='read_port6',fset='write_port6',name='Port6',access=AttrWriteType.READ_WRITE,dtype=bool)
+    port6 = attribute(fget='read_port6',fset='write_port6',name='Port_1.6',access=AttrWriteType.READ_WRITE,dtype=bool)
     
-    port7 = attribute(fget='read_port7',fset='write_port7',name='Port7',access=AttrWriteType.READ_WRITE,dtype=bool)
+    port7 = attribute(fget='read_port7',fset='write_port7',name='Port_1.7',access=AttrWriteType.READ_WRITE,dtype=bool)
     
+    gatetime = attribute(fget='read_gatetime',fset='write_gatetime',name='Gatetime',access=AttrWriteType.READ_WRITE,dtype=float,min_value=0)
     
+    act_port = attribute(fget='read_act_port',fset='write_act_port',name='ActivePort',access=AttrWriteType.READ_WRITE,dtype=int,min_warning=2, min_value=0,max_value=7)
     
-    
+    frequency = attribute(fget='read_frequency',fset='write_frequency',name='Frequency',access=AttrWriteType.READ_WRITE,dtype=float,min_value=1)
     
     def init_device(self):
         self.info_stream('Trying to establish connection')
@@ -37,11 +40,15 @@ class NIUSB6501(Device):
             Device.init_device(self)
             self.dev = ni.get_adapter()
             self.set_state(DevState.ON)
-            self.dev.set_io_mode(0b00000000,0b01111111,0b00000000)
+            self.dev.set_io_mode(0b00000000,0b01111111,0b00000000) #only ports 1.0-1.7 are writeable
             self.__ports = {3:False,4:False,5:False,6:False,7:False}
             self.__active = '0b00000000'
             self.dev.write_port(1,int(self.__active,2))
             self.info_stream('Connection established.')
+            
+            self.__gatetime = 1
+            self.__act_port = 3
+            self.__freq = 1
             
         except:
             if not self.dev:
@@ -82,6 +89,25 @@ class NIUSB6501(Device):
     
     def write_port7(self,state):
         self.change_port(7,state)
+        
+        
+    def read_gatetime(self):
+        return self.__gatetime
+    
+    def write_gatetime(self,value):
+        self.__gatetime = value
+        
+    def read_act_port(self):
+        return self.__act_port
+    
+    def write_act_port(self,value):
+        self.__act_port = value
+    
+    def read_frequency(self):
+        return self.__freq
+    
+    def write_frequency(self,value):
+        self.__freq = value
     
     @DebugIt(show_args=True,show_ret=True)
     def change_active(self,port,state):
@@ -102,38 +128,37 @@ class NIUSB6501(Device):
         self.dev.write_port(1,int(self.__active,2))
         self.__ports[port] = state
         self.debug_stream('changed port'+str(port)+' to '+str(state))
-    
+    #using the gate_timer for longer than 3s command will create a timeout error
+    #the command will still be executed as desired, but a warning will be sent
     @DebugIt()
-    @command(dtype_in=DevVarLong64Array)    
-    def gate_timer(self,inp):
+    @command()    
+    def gate_timer(self):
         start = time.time()
-        port,duration = inp
-        self.change_port(port,True)
-        time.sleep(duration)
-        self.change_port(port,False)
-        act_dur = time.time()-start
-        self.debug_stream('Actual duration of gate: '+ str(act_dur))
+        self.change_port(self.__act_port,True)
+        self.info_stream('Port{} active'.format(self.__act_port))
+        time.sleep(self.__gatetime)
+        self.change_port(self.__act_port,False)
+        self.info_stream('Port{} inactive'.format(self.__act_port))
+        self.debug_stream('Actual duration of gate: '+ str(time.time()-start))
 
-    
-	#work in progress...
+    #The frequency of the pulsetrain is not correct (as one can see by the "hits" in debug-mode).
     @DebugIt()
-    @command(dtype_in=DevVarLong64Array)
-    def pulsetrain(self,inp):
+    @command()
+    def pulsetrain(self):
         hits = 0
-        port, freq, duration = inp
-        
-        bitmap_on = int(self.change_active(port,True),2)
-        bitmap_off = int(self.change_active(port,False),2)
+
+        bitmap_on = int(self.change_active(self.__act_port,True),2)
+        bitmap_off = int(self.change_active(self.__act_port,False),2)
         self.debug_stream(str(bitmap_on))
         self.debug_stream(str(bitmap_off))
         
         start = time.time()
-        while time.time() <= start+duration:
+        while time.time() <= start+self.__gatetime:
             hits += 1
             self.dev.write_port(1,bitmap_on)
-            time.sleep(1/(freq))
+            time.sleep(1/(self.__freq))
             self.dev.write_port(1,bitmap_off)
-            time.sleep(1/(freq))
+            time.sleep(1/(self.__freq))
         act_dur = time.time()-start
         self.debug_stream('Actual duration:'+str(act_dur))
         self.debug_stream('Actual hits: '+str(hits))
