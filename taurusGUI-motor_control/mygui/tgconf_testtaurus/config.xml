@@ -1,0 +1,26 @@
+<taurusgui_config>
+  <GUI_NAME>testtaurus</GUI_NAME>
+  <ORGANIZATION>MBI</ORGANIZATION>
+  <CUSTOM_LOGO/>
+  <PanelDescriptions>
+    <PanelDescription>
+  <name>dummy</name>
+  <classname>TaurusForm</classname>
+  <modulename/>
+  <widgetname/>
+  <floating>True</floating>
+  <sharedDataWrite/>
+  <sharedDataRead/>
+  <model>tango://ubbox:10000/tau/dummies/1</model>
+</PanelDescription>
+  </PanelDescriptions>
+  <ExternalApps>
+    <ExternalApp>
+      <command>/home/lucajul/my-taurus/taurus2.py</command>
+      <params/>
+      <text>taurus2</text>
+      <icon>categories:xfce-devel.svg</icon>
+    </ExternalApp>
+  </ExternalApps>
+  <MONITOR></MONITOR>
+</taurusgui_config>
