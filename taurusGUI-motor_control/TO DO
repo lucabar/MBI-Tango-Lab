@@ -1,0 +1,4 @@
+- how can I give the program.py multiple input arguments with which it can start the mcc:
+	e.g.: ./my-taurus/taurus2.py tau/dummies/1/pos tau/dummies/1/temp
+	
+- integrate into newgui
