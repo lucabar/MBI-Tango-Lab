@@ -28,7 +28,7 @@ class Widget(Qt.QWidget):
         self.__pos = 0
         
         self.__dev = tango.DeviceProxy('tau/dummies/1')
-        self.__dev.pos = self.__pos
+        self.__dev. pos = self.__pos
 
         self.window_setup()
 
@@ -36,6 +36,17 @@ class Widget(Qt.QWidget):
     def setIcon(self):
         icon1 = Qt.QIcon('actions:player_play.svg')
         self.setWindowIcon(icon1)
+
+    # pushable button and reaction
+    '''
+    def setButton(self):
+        btn1 = Qt.QPushButton('Quit', self)
+        btn1.move(400,300)
+        btn1.setMaximumWidth(100)
+        btn1.setMinimumHeight(50)
+        btn1.clicked.connect(self.quexit)
+        return btn1
+    '''
 
     # action of button above
     def quexit(self):
@@ -53,29 +64,28 @@ class Widget(Qt.QWidget):
         #self.hboxGen()
 
         vbox = Qt.QVBoxLayout()
-        self.mots = 2 # enter number of attributes/mots on display
-        self.stepline = []
-        self.posline = []
-        self.c = 0
-        self.dic = {}
-        self.dic2 = {}
-        
-        for i in range(self.mots):
-            self.dic[i]=Qt.QLineEdit(self)
-            self.dic[i].move(0,-50)
-            self.dic2[i]=Qt.QLineEdit(self)
-            self.dic2[i].move(0,-50)
-        A = self.motorHBox('tau/dummies/1', 'pos', 0) # add motors and info
-        B = self.motorHBox('tau/dummies/1', 'temperature', 1)
-        #C = self.motorHBox('again some motor', 'hum')
 
-        self.vboxAssembly(A, B) # add motors you need
+        A = self.motorHBox('tau/dummies/1', 'pos')
+        B = self.motorHBox('tau/dummies/1', 'temperature')
+        C = self.motorHBox('again some motor', 'hum')
+
+        self.vboxAssembly(A, B, C)
 
         vbox.addWidget(self.groupBoxMot)
         #vbox.addWidget(self.groupBoxGen)
         self.setLayout(vbox)
+
         Qt.QToolTip.setFont(Qt.QFont('Decorative', 10, Qt.QFont.Bold))
 
+    def stepButton(self):
+        if self.stepline.text() == '':
+            return
+        print(type(self.stepline.text()), float(self.stepline.text()))
+        self.__step = float(self.stepline.text())
+
+    def newPos(self):
+        self.__pos = float(self.posline.text())
+        self.__dev.pos = self.__pos
 
     # general info
     def hboxGen(self):
@@ -89,9 +99,7 @@ class Widget(Qt.QWidget):
         self.groupBoxGen.setLayout(hbox)
 
     # given a motor and the attribute (both string) will construct a stepper
-    def motorHBox(self, motor, attr, num):
-        stepline = self.dic.get(num)
-        posline = self.dic2.get(num)
+    def motorHBox(self, motor, attr):
         # following is the construction of a hor. motor block,
         # to be contained in self.groupBox2_1 (as in first line of the second box)
         self.groupBox2_1 = Qt.QGroupBox(motor + '/' + attr)
@@ -99,18 +107,30 @@ class Widget(Qt.QWidget):
 
         hbox = Qt.QHBoxLayout()
 
-        stepline.setPlaceholderText('Schrittweite')
-        stepline.setMinimumHeight(40)
-        stepline.setMaximumWidth(150)
-        stepline.returnPressed.connect(lambda: self.stepButton(num))
-        hbox.addWidget(stepline)
+        self.stepline = Qt.QLineEdit(self)
+        self.stepline.setPlaceholderText('Schrittweite')
+        self.stepline.setMinimumHeight(40)
+        self.stepline.setMaximumWidth(150)
+        hbox.addWidget(self.stepline)
 
-        posline.setPlaceholderText('Zielposition')
-        posline.returnPressed.connect(lambda: self.newPos(num))
-        posline.setMinimumHeight(40)
-        posline.setMaximumWidth(150)
-        posline.setMaxLength(80)
-        hbox.addWidget(posline)
+        btn_step = Qt.QPushButton(Qt.QIcon('actions:go-jump.svg'), '', self)
+        btn_step.clicked.connect(self.stepButton)
+        btn_step.setMinimumHeight(40)
+        btn_step.setMinimumWidth(60)
+        hbox.addWidget(btn_step)
+
+        self.posline = Qt.QLineEdit(self)
+        self.posline.setPlaceholderText('Zielposition')
+        self.posline.setMinimumHeight(40)
+        self.posline.setMaximumWidth(150)
+        self.posline.setMaxLength(80)
+        hbox.addWidget(self.posline)
+
+        btn_newpos = Qt.QPushButton(Qt.QIcon('actions:go-jump.svg'), '', self)
+        btn_newpos.clicked.connect(self.newPos)
+        btn_newpos.setMinimumHeight(40)
+        btn_newpos.setMinimumWidth(60)
+        hbox.addWidget(btn_newpos)
 
         hbox.addStretch()
 
@@ -143,20 +163,8 @@ class Widget(Qt.QWidget):
         hbox.addWidget(buttonRR)
 
         self.groupBox2_1.setLayout(hbox)
-        #self.c += 1
 
         return self.groupBox2_1
-
-    def stepButton(self, num):
-        stepline = self.dic.get(num)
-
-        self.__step = float(stepline.text())
-
-    def newPos(self, num):
-        posline = self.dic2.get(num)
-
-        self.__pos = float(posline.text())
-        self.__dev.pos = self.__pos
 
     def vboxAssembly(self, *groups):
         self.groupBoxMot = Qt.QGroupBox('Motors')
