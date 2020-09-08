@@ -6,15 +6,53 @@ from taurus.external.qt import Qt
 from taurus.qt.qtgui.application import TaurusApplication
 from taurus.qt.qtgui.display import TaurusLabel
 
-class MyGUI(Qt.QMainWindow):
-    def __init__(self, parent=None):
-        Qt.QMainWindow.__init__(self, parent)
-        self.setWindowTitle('Positions') # self stands for QMainWindow
+from taurus.qt.qtgui.base import TaurusBaseWritableWidget
+from taurus.core.taurusbasetypes import TaurusEventType
 
-        self.menu = self.menuBar()
-        self.file_menu = self.menu.addMenu('File')
+class MyTaurusEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
+    def __init__(self, qt_parent=None, designMode=False):
+        name = self.__class__.__name__
+        self.call__init__wo_kw(Qt.QLineEdit, qt_parent)
+        self.call__init__(TaurusBaseWritableWidget, name, designMode=designMode)
 
-        
+        self.numberChanged.connect(self.notifyValueChanged)
+        self.returnPressed.connect(self.writeValue)
+        self.valueChangedSignal.connect(self.updatePendingOperations)
+        self._configured = False
+
+    def handleEvent(self, evt_src, evt_type, evt_value):
+        if evt_type == TaurusEventType.Config or not self._configured:
+            if evt_value is not None:
+                obj = self.getModelObj()
+                # set decimal digits
+                self.setDigitCount(int_nb=None, dec_nb=obj.precision)
+                # set min and max values
+                min_, max_ = obj.getRange()
+                if min_ is not None:
+                    self.setMinValue(min_.magnitude)
+                if max_ is not None:
+                    self.setMaxValue(max_.magnitude)
+                self._configured = True
+
+        TaurusBaseWritableWidget.handleEvent(
+            self, evt_src, evt_type, evt_value)
+
+
+    model = Qt.pyqtProperty("QString", TaurusBaseWritableWidget.getModel,
+                            TaurusBaseWritableWidget.setModel,
+                            TaurusBaseWritableWidget.resetModel)
+
+    useParentModel = Qt.pyqtProperty("bool", TaurusBaseWritableWidget.getUseParentModel,
+                                     TaurusBaseWritableWidget.setUseParentModel,
+                                     TaurusBaseWritableWidget.resetUseParentModel)
+
+    autoApply = Qt.pyqtProperty("bool", TaurusBaseWritableWidget.getAutoApply,
+                                TaurusBaseWritableWidget.setAutoApply,
+                                TaurusBaseWritableWidget.resetAutoApply)
+
+    forcedApply = Qt.pyqtProperty("bool", TaurusBaseWritableWidget.getForcedApply,
+                                  TaurusBaseWritableWidget.setForcedApply,
+                                  TaurusBaseWritableWidget.resetForcedApply)
 
 class Widget(Qt.QWidget):
 
@@ -26,7 +64,7 @@ class Widget(Qt.QWidget):
 
         self.__step = 1
         self.__pos = 0
-        
+
         self.__dev = tango.DeviceProxy('tau/dummies/1')
         self.__dev.pos = self.__pos
 
@@ -59,12 +97,13 @@ class Widget(Qt.QWidget):
         self.c = 0
         self.dic = {}
         self.dic2 = {}
-        
+
         for i in range(self.mots):
             self.dic[i]=Qt.QLineEdit(self)
             self.dic[i].move(0,-50)
             self.dic2[i]=Qt.QLineEdit(self)
             self.dic2[i].move(0,-50)
+
         A = self.motorHBox('tau/dummies/1', 'pos', 0) # add motors and info
         B = self.motorHBox('tau/dummies/1', 'temperature', 1)
         #C = self.motorHBox('again some motor', 'hum')
@@ -125,7 +164,7 @@ class Widget(Qt.QWidget):
         buttonL.setMinimumWidth(60)
         hbox.addWidget(buttonL)
 
-        w = TaurusLabel()
+        w = MyTaurusEdit()
         w.setMaximumHeight(40)
         w.setMinimumWidth(80)
         hbox.addWidget(w)
@@ -172,13 +211,6 @@ if __name__ == "__main__":
     import sys
     app = TaurusApplication(cmd_line_parser=None)
     gui = Widget()
-    '''
-    layout = Qt.QHBoxLayout()
-    w = TaurusLabel()
-    layout.addWidget(w)
-    w.model = 'test/dummies/1/pos'
-    gui.setLayout(layout)
-    '''
     gui.show()
     sys.exit(app.exec_())
     
