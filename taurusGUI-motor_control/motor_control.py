@@ -7,12 +7,12 @@ from taurus.qt.qtgui.application import TaurusApplication
 from taurus.qt.qtgui.display import TaurusLabel
 
 
-class Widget(Qt.QWidget):
+class MotorWidget(Qt.QWidget):
 
     def __init__(self):
         Qt.QWidget.__init__(self)
         self.setWindowTitle('Motor Control Center')
-        self.setGeometry(1000, 300, 800, 350)
+        self.setGeometry(1000, 300, 500, 350)
         self.setMinimumSize(300, 200)
 
         self.__step = 1
@@ -57,16 +57,11 @@ class Widget(Qt.QWidget):
             self.dic2[i]=Qt.QLineEdit(self)
             self.dic2[i].move(0, -50)
 
-            # only modify inside the box below
-###########################################################################
         # add motors needed, followed by enumeration
         A = self.motorHBox('tau/dummies/1/pos', 0) # add motors and info
         B = self.motorHBox('tau/dummies/1/humidity', 1)
 
         self.vboxAssembly(A, B) # add motors you need assembled
-
-###########################################################################
-            # only modify in the box above
 
         vbox.addWidget(self.groupBoxMot)
         #vbox.addWidget(self.groupBoxGen)
@@ -170,7 +165,7 @@ class Widget(Qt.QWidget):
 if __name__ == "__main__":
     import sys
     app = TaurusApplication(cmd_line_parser=None)
-    gui = Widget()
+    gui = MotorWidget()
     gui.show()
     sys.exit(app.exec_())
     
