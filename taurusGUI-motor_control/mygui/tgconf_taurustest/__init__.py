@@ -7,7 +7,7 @@ from __future__ import absolute_import
 import click
 from .config import *
 
-@click.command("testtaurus")
+@click.command("taurustest")
 @click.pass_context
 @click.option('--safe-mode', 'safe_mode', is_flag=True, default=False,
               help=('launch in safe mode (it prevents potentially problematic '
@@ -15,4 +15,4 @@ from .config import *
               )
 def run(ctx, safe_mode):
     from taurus.qt.qtgui.taurusgui.taurusgui import gui_cmd
-    ctx.invoke(gui_cmd, confname="tgconf_testtaurus", safe_mode=safe_mode)
+    ctx.invoke(gui_cmd, confname="tgconf_taurustest", safe_mode=safe_mode)

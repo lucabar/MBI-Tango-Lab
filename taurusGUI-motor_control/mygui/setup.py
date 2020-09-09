@@ -18,18 +18,18 @@ classifiers = [
 ]
 
 _entry_points = {
-    "console_scripts": ["testtaurus=tgconf_testtaurus:run"]
+    "console_scripts": ["taurustest=tgconf_taurustest:run"]
 }
 
 setup(
-    name="tgconf_testtaurus",
+    name="tgconf_taurustest",
     version=__version,
     include_package_data=True,
     packages=find_packages(),
     entry_points=_entry_points,
     url='http://www.taurus-scada.org/en/latest/',
     keywords='APP',
-    description='testtaurus Taurus GUI',
+    description='taurustest Taurus GUI',
     requires=['setuptools (>=1.1)'],
     install_requires=['taurus[taurus-qt]'],
     classifiers=classifiers
