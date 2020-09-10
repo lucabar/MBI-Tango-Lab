@@ -100,6 +100,7 @@ class LockInAmp(Device):
 
 # ------ Read/Write functions ------ #
     def read_X(self):  # this is default to read humidity
+        self.inst.query
         return self.__X
 
     def read_Y(self):
