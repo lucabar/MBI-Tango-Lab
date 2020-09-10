@@ -7,15 +7,16 @@
 # Author: Luca Barbera / Email: barbera@mbi-berlin.de
 
 
-from tango import AttrWriteType, DevState, DebugIt, DispLevel
+from tango import AttrWriteType, DevState, DebugIt
 from tango.server import Device, attribute, command, device_property
 
 import visa
 
 class LockInAmp(Device):
     '''
-    This docstring should describe your Tango Class and optionally
-    what it depends on (drivers etc).
+    pyvisa-py must be installed for this TDS to work.
+    to talk to the device the "open_resource" command must be 
+    string 'TCPIP::' followed by IP address of device inside string
     '''
 
 
@@ -36,14 +37,11 @@ class LockInAmp(Device):
                          access=AttrWriteType.READ,
                          doc='Readable R value.')
 
-    # optionally use fget/fset to point to read and write functions.
-    # Default is "read_temperature"/"write_temperature".
-    # Added some optional attribute properties.
-    phase = attribute(label='Phase',
-                            dtype=float,
-                            access=AttrWriteType.READ,
-                            display_level=DispLevel.EXPERT,
-                            doc='Readable phase attribute.')
+    phase = attribute(name='phase',
+                      label='Phase',
+                      dtype=float,
+                      access=AttrWriteType.READ,
+                      doc='Readable phase attribute.')
 
 
 # ------ Device Properties ------ #
@@ -57,15 +55,16 @@ class LockInAmp(Device):
 # ------ default functions that are inherited from parent "Device" ------ #
     def init_device(self):
         Device.init_device(self)
-        self.info_stream('Connection established')  # prints this line while -
+        self.info_stream('Connecting...')  # prints this line while -
         # in logging mode "info" or lower
         self.set_state(DevState.ON)
 
         rm = visa.ResourceManager('@py')
-        self.inst = rm.open_resource('TCPIP::192.168.1.242')
+        self.inst = rm.open_resource('TCPIP::'+str(self.port))
         idn = self.inst.query('*IDN?')
         if idn:
-            self.info_stream(idn)
+            self.info_stream('Instrument ID: ' + idn)
+            self.info_stream('Connection established!')
         else:
             self.info_stream('Instrument could not be initialized.')
 
@@ -84,54 +83,41 @@ class LockInAmp(Device):
     # (as it is in default) of the TDS.
     # Default returns state but also sets state from ON to ALARM if -
     # some attribute alarm limits are surpassed.
-    def dev_state(self):
+    #def dev_state(self):
         # possible pseudo code:
         # if hardware-state and TDS-state is ON:
         #   return DevState.ON
         # else:
         #   return DevState.FAULT
-        return DevState
-
+        #return DevState
+    '''
     def always_executed_hook(self):
-        '''this does not need to implemented but could be used for polling
+        this does not need to implemented but could be used for polling
         one, two or three attributes continuously and at the same time instead of calling
         them each time they are read. can be used for phase as well
-        '''
-        # self.__X, self.__Y, self.__R = self.inst.query('SNAP? X, Y, R') 
+    
+        self.__X, self.__Y, self.__R = self.inst.query('SNAP? X, Y, R')
+    '''
 
 # ------ Read/Write functions ------ #
+    @DebugIt()
     def read_X(self):  # this is default to read humidity
-        self.__X = self.inst.query('OUTP? X')
+        self.__X = float(self.inst.query('OUTP? X'))
         return self.__X
 
+    @DebugIt()
     def read_Y(self):
-        self.__Y = self.inst.query('OUTP? Y')
+        self.__Y = float(self.inst.query('OUTP? Y'))
         return self.__Y
 
     def read_R(self):
-        self.__R = self.inst.query('OUTP? R')
+        self.__R = float(self.inst.query('OUTP? R'))
         return self.__R
 
+    @DebugIt()
     def read_phase(self):
-        self.__phase = self.inst.query('OUTP? TH')
+        self.__phase = float(self.inst.query('OUTP? TH'))
         return self.__phase
-
-# ------ Internal Methods ------ #
-    # method that works with multiple input parameters only "inside" this code
-
-    def internal_method(self, param1, param2):
-        # do something with param1, param2
-        pass
-
-
-# ------ COMMANDS ------ #
-
-    @DebugIt()  # let the execution of this command be logged in debugging mode
-    @command()  # make method executable through the client -
-    # (as opposed to just callable inside this code)
-    def external_method(self, param):
-        # this kind of method only allows one input parameter
-        pass
 
     # more examples of externally executable methods
     @command()
