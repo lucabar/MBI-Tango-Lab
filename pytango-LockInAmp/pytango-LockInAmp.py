@@ -93,23 +93,27 @@ class LockInAmp(Device):
         return DevState
 
     def always_executed_hook(self):
-        # a method that is executed continuously and by default does nothing.
-        # if you want smth done polled/continuously, put it in this method.
-        # check connection to hardware or whether status is acceptable etc.
-        pass
+        '''this does not need to implemented but could be used for polling
+        one, two or three attributes continuously and at the same time instead of calling
+        them each time they are read. can be used for phase as well
+        '''
+        # self.__X, self.__Y, self.__R = self.inst.query('SNAP? X, Y, R') 
 
 # ------ Read/Write functions ------ #
     def read_X(self):  # this is default to read humidity
-        self.inst.query
+        self.__X = self.inst.query('OUTP? X')
         return self.__X
 
     def read_Y(self):
+        self.__Y = self.inst.query('OUTP? Y')
         return self.__Y
 
     def read_R(self):
+        self.__R = self.inst.query('OUTP? R')
         return self.__R
 
     def read_phase(self):
+        self.__phase = self.inst.query('OUTP? TH')
         return self.__phase
 
 # ------ Internal Methods ------ #
