@@ -10,10 +10,9 @@
 from tango import AttrWriteType, DevState, DebugIt, DispLevel
 from tango.server import Device, attribute, command, device_property
 
-# import the drivers you will use
+import visa
 
-
-class TemplateDeviceServer(Device):
+class LockInAmp(Device):
     '''
     This docstring should describe your Tango Class and optionally
     what it depends on (drivers etc).
@@ -22,27 +21,29 @@ class TemplateDeviceServer(Device):
 
 # ------ Attributes ------ #
 
-    humidity = attribute(label='Humidity',
+    X = attribute(label='X',
                          dtype=float,
                          access=AttrWriteType.READ,
-                         doc='Example for an attribute that can only be read.')
+                         doc='Readable X value.')
+
+    Y = attribute(label='Y',
+                         dtype=float,
+                         access=AttrWriteType.READ,
+                         doc='Readable Y value.')
+
+    R = attribute(label='R',
+                         dtype=float,
+                         access=AttrWriteType.READ,
+                         doc='Readable R value.')
 
     # optionally use fget/fset to point to read and write functions.
     # Default is "read_temperature"/"write_temperature".
     # Added some optional attribute properties.
-    temperature = attribute(label='Temperature',
-                            fget='get_temperature',
+    phase = attribute(label='Phase',
                             dtype=float,
-                            access=AttrWriteType.READ_WRITE,
+                            access=AttrWriteType.READ,
                             display_level=DispLevel.EXPERT,
-                            min_value=-273.15,
-                            min_alarm=-100,
-                            max_alarm=100,
-                            min_warning=-50,
-                            max_warning=50,
-                            unit='C',
-                            format="8.4f",
-                            doc='Attribute that can be read/written.')
+                            doc='Readable phase attribute.')
 
 
 # ------ Device Properties ------ #
@@ -50,7 +51,8 @@ class TemplateDeviceServer(Device):
     # contain serial numbers or a certain port-ID that needs to be set once -
     # and will not change while the server is running.
 
-    port = device_property(dtype=int, default_value=10000)
+    # enter IP-address to talk over TCP/IP via pyvisa
+    port = device_property(dtype=int, default_value='192.168.1.242')
 
 # ------ default functions that are inherited from parent "Device" ------ #
     def init_device(self):
@@ -59,10 +61,18 @@ class TemplateDeviceServer(Device):
         # in logging mode "info" or lower
         self.set_state(DevState.ON)
 
-        # here you could initiate first contact to the hardware (driver)
+        rm = visa.ResourceManager('@py')
+        self.inst = rm.open_resource('TCPIP::192.168.1.242')
+        idn = self.inst.query('*IDN?')
+        if idn:
+            self.info_stream(idn)
+        else:
+            self.info_stream('Instrument could not be initialized.')
 
-        self.__temp = 0  # declaring values for the attributes if needed
-        self.__humid = 0
+        self.__X = 0
+        self.__Y = 0
+        self.__R = 0
+        self.__phase = 0
 
     def delete_device(self):
         self.set_state(DevState.OFF)
@@ -89,16 +99,17 @@ class TemplateDeviceServer(Device):
         pass
 
 # ------ Read/Write functions ------ #
-    def read_humidity(self):  # this is default to read humidity
-        return self.__humid  # returns the value of the "humidity" attr.
+    def read_X(self):  # this is default to read humidity
+        return self.__X
 
-    def get_temperature(self):  # this was set by fget in attribute declaration
-        return self.__temp
+    def read_Y(self):
+        return self.__Y
 
-    def write_temperature(self, value):
-        # possibly execute some function here to talk to the hardware -
-        # (e.g. set temperature with a thermostat)
-        self.__temp = value  # update the declared server value of the attr.
+    def read_R(self):
+        return self.__R
+
+    def read_phase(self):
+        return self.__phase
 
 # ------ Internal Methods ------ #
     # method that works with multiple input parameters only "inside" this code
@@ -129,4 +140,4 @@ class TemplateDeviceServer(Device):
 
 # start the server
 if __name__ == "__main__":
-    TemplateDeviceServer.run_server()
+    LockInAmp.run_server()
