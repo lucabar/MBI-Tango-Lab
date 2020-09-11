@@ -30,7 +30,7 @@ class MotorWidget(Qt.QWidget):
         - select "MotorWidget" (name of this class) from Class dropdown
         - "Finish"
         - (optional) switch temporary status to permanent
-    
+
     Important! After changing this file Panel must be re-added to the GUI !
     '''
 
@@ -40,24 +40,22 @@ class MotorWidget(Qt.QWidget):
         self.setGeometry(1000, 300, 500, 350)
         self.setMinimumSize(300, 200)
 
-        self.__step = 1 # default stepsize
-        self.__pos = 0 # default jump position
-        
-
+        self.__step = 1  # default stepsize
+        self.__pos = 0  # default jump position
         # initialize contact to the device whose attributes will be accessed
         # this part should be updated by a faster/cleaner method
-        self.deviceproxydict = {} # dict that stores the devices
-        self.attributedict = {} # dict that stores the attributes
+        self.deviceproxydict = {}  # dict that stores the devices
+        self.attributedict = {}  # dict that stores the attributes
 
-        self.steplinedict = {} # dict that stores the QLineEdit for step size
-        self.poslinedict = {} # dict that stores the QLineEdit for jump pos
-        self.stepdict = {} # dict that stores step size for each motor
+        self.steplinedict = {}  # dict that stores the QLineEdit for step size
+        self.poslinedict = {}  # dict that stores the QLineEdit for jump pos
+        self.stepdict = {}  # dict that stores step size for each motor
 
 # edit only below; add new motor+attribute
 # ************************************************************************ #
 
         self.devices = ['tau/dummies/1', 'tau/dummies/1']
-        attributes = ['pos','temperature']
+        attributes = ['pos', 'temperature']
 
 # ************************************************************************ #
 # edit only above
@@ -91,27 +89,27 @@ class MotorWidget(Qt.QWidget):
         vbox = Qt.QVBoxLayout()
 
         for i in range(self.mots):
-            self.steplinedict[i]=Qt.QLineEdit(self)
-            self.steplinedict[i].move(0, -50) 
-            self.poslinedict[i]=Qt.QLineEdit(self)
+            self.steplinedict[i] = Qt.QLineEdit(self)
+            self.steplinedict[i].move(0, -50)
+            self.poslinedict[i] = Qt.QLineEdit(self)
             self.poslinedict[i].move(0, -50)
             self.stepdict[i] = 1
 
 # edit only below
 # ************************************************************************ #
-        
+
         # enter entire attributes needed and enumeration A = 0, B = 1, etc.
         # has to be the same as motor and attr in the dicts in init
         A = self.motorHBox(str(self.devices[0]+'/'+self.attributedict[0]), 0)
         B = self.motorHBox(str(self.devices[1]+'/'+self.attributedict[1]), 1)
 
-        self.vboxAssembly(A, B) # add motors you need assembled
+        self.vboxAssembly(A, B)  # add motors you need assembled
 
 # ************************************************************************ #
 # edit only above
 
         vbox.addWidget(self.groupBoxMot)
-        #vbox.addWidget(self.groupBoxGen)
+        # vbox.addWidget(self.groupBoxGen)
         self.setLayout(vbox)
         Qt.QToolTip.setFont(Qt.QFont('Decorative', 10, Qt.QFont.Bold))
 
@@ -120,7 +118,7 @@ class MotorWidget(Qt.QWidget):
         # one dict for the step size, one for the jump position
         stepline = self.steplinedict.get(num)
         posline = self.poslinedict.get(num)
-        
+
         # following is the construction of a hor. motor block,
         # to be contained in self.groupBox2_1 (first line of the second box)
         self.groupBox2_1 = Qt.QGroupBox(motor)
@@ -206,10 +204,10 @@ class MotorWidget(Qt.QWidget):
 
         self.groupBoxMot.setLayout(vbox)
 
+
 if __name__ == "__main__":
     import sys
     app = TaurusApplication(cmd_line_parser=None)
     gui = MotorWidget()
     gui.show()
     sys.exit(app.exec_())
-    
