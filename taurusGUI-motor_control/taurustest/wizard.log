@@ -1,9 +1,0 @@
-Project created by AppSettingsWizard on 2020-09-11T13:51:40.509977
-XML Config file created: "/home/lucajul/my-taurus/taurustest/tgconf_taurustest/config.xml"
-Python config file created: "/home/lucajul/my-taurus/taurustest/tgconf_taurustest/config.py"
-python init file created: "/home/lucajul/my-taurus/taurustest/tgconf_taurustest/__init__.py"
-Application project was successfully created.You can find the files in: "/home/lucajul/my-taurus/taurustest"
-Tip: You can install it with:
-	pip install /home/lucajul/my-taurus/taurustest
-Tip: And then run the application with:
-	 taurustest
