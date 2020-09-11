@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
-# Copyright (C) 2020  MBI-Division-B
-# MIT License, refer to LICENSE file
-# Author: Luca Barbera / Email: barbera@mbi-berlin.de
-
 import tango
 
 from taurus.external.qt import Qt
@@ -13,25 +8,12 @@ from taurus.qt.qtgui.display import TaurusLabel
 
 
 class MotorWidget(Qt.QWidget):
-    ''' This is not the tidiest Qt-code but it does the job. Most of this
-    could have been done by OOP, but this was quicker.
-
+    ''' this is not the tidiest Qt-code but it does the job.
+    Right now it is set to accept two motors, but this can be changed under
+    self.mots in window_setup().
     If more (or less) than two are chosen, the other motors need to be added
-    to the enumeration A, B, ... below. Both editable sections are *** labeled
-
-    Step sizes have to be floats greater than zero; jump position is float
-
-    To add this MotorWidget in a TaurusGui:
-        - choose "New panel"
-        - set a Panel Name
-        - click on "Other..."
-        - set "motor_control" (name of this file) as "Module"
-        - make sure the gui can access this file (e.g. copy into python-files)
-        - select "MotorWidget" (name of this class) from Class dropdown
-        - "Finish"
-        - (optional) switch temporary status to permanent
-    
-    Important! After changing this file Panel must be re-added to the GUI !
+    to the enumeration A, B, ... below.
+    The device that is talked to in 
     '''
 
     def __init__(self):
@@ -43,72 +25,41 @@ class MotorWidget(Qt.QWidget):
         self.__step = 1 # default stepsize
         self.__pos = 0 # default jump position
         
-
         # initialize contact to the device whose attributes will be accessed
         # this part should be updated by a faster/cleaner method
-        self.deviceproxydict = {} # dict that stores the devices
-        self.attributedict = {} # dict that stores the attributes
-
-        self.steplinedict = {} # dict that stores the QLineEdit for step size
-        self.poslinedict = {} # dict that stores the QLineEdit for jump pos
-        self.stepdict = {} # dict that stores step size for each motor
-
-# edit only below; add new motor+attribute
-# ************************************************************************ #
-
-        self.devices = ['tau/dummies/1', 'tau/dummies/1']
-        attributes = ['pos','temperature']
-
-# ************************************************************************ #
-# edit only above
-
-        if len(self.devices) == len(attributes):
-            self.mots = len(attributes)
-        else:
-            raise Exception('The amount of devices does not match the amount of attributes!')
-
-        c = 0
-        for dev in self.devices:
-            self.deviceproxydict[c] = tango.DeviceProxy(dev)
-            self.attributedict[c] = attributes[c]
-            c += 1
+        self.__dev = tango.DeviceProxy('tau/dummies/1')
+        self.__dev.pos = self.__pos
 
         self.window_setup()
 
-    def moveR(self, num):
-        step = self.stepdict.get(num)
-        dev = self.deviceproxydict.get(num)
-        attr = self.attributedict.get(num)
-        dev[attr] = dev[attr].value + step
+    def moveR(self):
+        self.__pos += self.__step
+        self.__dev.pos = self.__pos
 
-    def moveL(self, num):
-        step = self.stepdict.get(num)
-        dev = self.deviceproxydict.get(num)
-        attr = self.attributedict.get(num)
-        dev[attr] = dev[attr].value - step
+    def moveL(self):
+        self.__pos -= self.__step
+        self.__dev.pos = self.__pos
 
     def window_setup(self):
         vbox = Qt.QVBoxLayout()
+        self.mots = 2 # enter number of attributes/mots on display
+        self.stepline = []
+        self.posline = []
+        self.c = 0
+        self.dic = {}
+        self.dic2 = {}
 
         for i in range(self.mots):
-            self.steplinedict[i]=Qt.QLineEdit(self)
-            self.steplinedict[i].move(0, -50) 
-            self.poslinedict[i]=Qt.QLineEdit(self)
-            self.poslinedict[i].move(0, -50)
-            self.stepdict[i] = 1
+            self.dic[i]=Qt.QLineEdit(self)
+            self.dic[i].move(0, -50) 
+            self.dic2[i]=Qt.QLineEdit(self)
+            self.dic2[i].move(0, -50)
 
-# edit only below
-# ************************************************************************ #
-        
-        # enter entire attributes needed and enumeration A = 0, B = 1, etc.
-        # has to be the same as motor and attr in the dicts in init
-        A = self.motorHBox(str(self.devices[0]+'/'+self.attributedict[0]), 0)
-        B = self.motorHBox(str(self.devices[1]+'/'+self.attributedict[1]), 1)
+        # add attributes needed, followed by enumeration A = 0, B = 1, etc.
+        A = self.motorHBox('tau/dummies/1/pos', 0) # add motors and info
+        B = self.motorHBox('tau/dummies/1/humidity', 1)
 
         self.vboxAssembly(A, B) # add motors you need assembled
-
-# ************************************************************************ #
-# edit only above
 
         vbox.addWidget(self.groupBoxMot)
         #vbox.addWidget(self.groupBoxGen)
@@ -118,8 +69,8 @@ class MotorWidget(Qt.QWidget):
     # given a motor and the attribute (both string) will construct a stepper
     def motorHBox(self, motor, num):
         # one dict for the step size, one for the jump position
-        stepline = self.steplinedict.get(num)
-        posline = self.poslinedict.get(num)
+        stepline = self.dic.get(num)
+        posline = self.dic2.get(num)
         
         # following is the construction of a hor. motor block,
         # to be contained in self.groupBox2_1 (first line of the second box)
@@ -151,7 +102,7 @@ class MotorWidget(Qt.QWidget):
         hbox.addWidget(buttonLL)
         '''
         buttonL = Qt.QPushButton(Qt.QIcon('actions:left.svg'), '', self)
-        buttonL.clicked.connect(lambda: self.moveL(num))
+        buttonL.clicked.connect(self.moveL)
         buttonL.setMinimumHeight(40)
         buttonL.setMinimumWidth(60)
         hbox.addWidget(buttonL)
@@ -163,7 +114,7 @@ class MotorWidget(Qt.QWidget):
         w.model = motor
 
         buttonR = Qt.QPushButton(Qt.QIcon('actions:right.svg'), '', self)
-        buttonR.clicked.connect(lambda: self.moveR(num))
+        buttonR.clicked.connect(self.moveR)
         buttonR.setMinimumHeight(40)
         buttonR.setMinimumWidth(60)
         hbox.addWidget(buttonR)
@@ -178,20 +129,18 @@ class MotorWidget(Qt.QWidget):
         return self.groupBox2_1
 
     def stepButton(self, num):
-        stepline = self.steplinedict.get(num)
+        stepline = self.dic.get(num)
         try:
-            if float(stepline.text()) > 0:
-                self.stepdict[num] = float(stepline.text())
+            self.__step = float(stepline.text())
         except:
             pass
 
     def newPos(self, num):
-        posline = self.poslinedict.get(num)
-        dev = self.deviceproxydict.get(num)
-        attr = self.attributedict.get(num)
+        posline = self.dic2.get(num)
+
         try:
-            position = float(posline.text())
-            dev[attr] = position
+            self.__pos = float(posline.text())
+            self.__dev.pos = self.__pos
         except:
             pass
 
@@ -201,8 +150,8 @@ class MotorWidget(Qt.QWidget):
 
         vbox = Qt.QVBoxLayout()
 
-        for box in groups:
-            vbox.addWidget(box)
+        for i in groups:
+            vbox.addWidget(i)
 
         self.groupBoxMot.setLayout(vbox)
 
