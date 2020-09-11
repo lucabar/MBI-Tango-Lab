@@ -16,7 +16,7 @@ class MotorWidget(Qt.QWidget):
     ''' This is not the tidiest Qt-code but it does the job. Most of this
     could have been done by OOP, but this was quicker.
 
-    If more (or less) than two are chosen, the other motors need to be added
+    If more (or less) than two motors are chosen, the other need to be added
     to the enumeration A, B, ... below. Both editable sections are *** labeled
 
     Step sizes have to be floats greater than zero; jump position is float
@@ -26,7 +26,7 @@ class MotorWidget(Qt.QWidget):
         - set a Panel Name
         - click on "Other..."
         - set "motor_control" (name of this file) as "Module"
-        - make sure the gui can access this file (e.g. copy into python-files)
+        - make sure the gui can access this file (e.g. copy into python-files or same directory)
         - select "MotorWidget" (name of this class) from Class dropdown
         - "Finish"
         - (optional) switch temporary status to permanent
