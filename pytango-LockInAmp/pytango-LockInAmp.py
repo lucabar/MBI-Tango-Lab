@@ -7,15 +7,16 @@
 # Author: Luca Barbera / Email: barbera@mbi-berlin.de
 
 
-from tango import AttrWriteType, DevState, DebugIt
+from tango import AttrWriteType, DevState
 from tango.server import Device, attribute, command, device_property
 
 import visa
 
+
 class LockInAmp(Device):
     '''
     pyvisa-py must be installed for this TDS to work.
-    to talk to the device the "open_resource" command must be 
+    to talk to the device the "open_resource" command must be
     string 'TCPIP::' followed by IP address of device inside string
     '''
 
@@ -23,19 +24,19 @@ class LockInAmp(Device):
 # ------ Attributes ------ #
 
     X = attribute(label='X',
-                         dtype=float,
-                         access=AttrWriteType.READ,
-                         doc='Readable X value.')
+                  dtype=float,
+                  access=AttrWriteType.READ,
+                  doc='Readable X value.')
 
     Y = attribute(label='Y',
-                         dtype=float,
-                         access=AttrWriteType.READ,
-                         doc='Readable Y value.')
+                  dtype=float,
+                  access=AttrWriteType.READ,
+                  doc='Readable Y value.')
 
     R = attribute(label='R',
-                         dtype=float,
-                         access=AttrWriteType.READ,
-                         doc='Readable R value.')
+                  dtype=float,
+                  access=AttrWriteType.READ,
+                  doc='Readable R value.')
 
     phase = attribute(name='phase',
                       label='Phase',
@@ -75,37 +76,23 @@ class LockInAmp(Device):
 
     def delete_device(self):
         self.set_state(DevState.OFF)
-        self.error_stream('A device was deleted!')  # prints this line while -
+        self.error_stream('A device was deleted!')  # prints this line while
         # in logging mode "error" or lower.
 
-    # define what is executed when Tango checks for the state.
-    # Here you could inquire the state of the hardware and not just -
-    # (as it is in default) of the TDS.
-    # Default returns state but also sets state from ON to ALARM if -
-    # some attribute alarm limits are surpassed.
-    #def dev_state(self):
-        # possible pseudo code:
-        # if hardware-state and TDS-state is ON:
-        #   return DevState.ON
-        # else:
-        #   return DevState.FAULT
-        #return DevState
     '''
     def always_executed_hook(self):
         this does not need to implemented but could be used for polling
-        one, two or three attributes continuously and at the same time instead of calling
-        them each time they are read. can be used for phase as well
-    
+        one, two or three attributes continuously and at the same time instead
+        of calling them each time they are read. can be used for phase as well
+
         self.__X, self.__Y, self.__R = self.inst.query('SNAP? X, Y, R')
     '''
 
 # ------ Read/Write functions ------ #
-    @DebugIt()
     def read_X(self):  # this is default to read humidity
         self.__X = float(self.inst.query('OUTP? X'))
         return self.__X
 
-    @DebugIt()
     def read_Y(self):
         self.__Y = float(self.inst.query('OUTP? Y'))
         return self.__Y
@@ -114,7 +101,6 @@ class LockInAmp(Device):
         self.__R = float(self.inst.query('OUTP? R'))
         return self.__R
 
-    @DebugIt()
     def read_phase(self):
         self.__phase = float(self.inst.query('OUTP? TH'))
         return self.__phase
