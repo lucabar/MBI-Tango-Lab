@@ -15,7 +15,7 @@ import visa
 
 class LockInAmp(Device):
     '''
-    pyvisa-py must be installed for this TDS to work.
+    pyvisa-py must be installed for this TDS to work (use pip3).
     to talk to the device the "open_resource" command must be
     string 'TCPIP::' followed by IP address of device inside string
     '''
@@ -51,7 +51,7 @@ class LockInAmp(Device):
     # and will not change while the server is running.
 
     # enter IP-address to talk over TCP/IP via pyvisa
-    port = device_property(dtype=int, default_value='192.168.1.242')
+    port = device_property(dtype=str, default_value='192.168.0.5')
 
 # ------ default functions that are inherited from parent "Device" ------ #
     def init_device(self):
