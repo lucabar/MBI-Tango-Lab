@@ -1,0 +1,14 @@
+[Unit]
+Description=tango AM2315 devices
+Requires=network-online.target
+After=multi-user.target
+
+[Service]
+EnvironmentFile=/etc/tangorc
+ExecStart=/home/pi/sensor/pytango-AM2315-temp_humid/temp_hum.py test -v3
+WorkingDirectory=/home/pi/sensor/pytango-AM2315-temp_humid/
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
