@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# TangoDeviceServer
-=======
 # PyTango AM2315 Tango Device Server
 Content: <a href="#install_driver">Installing AM2315 driver</a>, <a href="#register_TDS">Registering TangoDS</a>, <a href="#connect_db">Connecting Databases</a>, <a href="#write_TDS">Writing TangoDS</a>, <a href="#run_TDS">Running TangoDS</a>.
 
